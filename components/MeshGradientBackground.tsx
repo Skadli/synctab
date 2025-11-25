@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View, Dimensions } from 'react-native';
 import Animated, {
     useSharedValue,
@@ -7,22 +7,24 @@ import Animated, {
     withTiming,
     Easing,
     withSequence,
+    withDelay,
 } from 'react-native-reanimated';
 import { Colors } from '../constants/Colors';
-import { BlurView } from 'expo-blur';
 import { useTheme } from '../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
-const Blob = ({ color, size, initialX, initialY, duration, delay = 0 }: { color: string, size: number, initialX: number, initialY: number, duration: number, delay?: number }) => {
+const NUM_PARTICLES = 35;
+
+const Particle = ({ color, size, initialX, initialY, duration, delay }: { color: string, size: number, initialX: number, initialY: number, duration: number, delay: number }) => {
     const translateX = useSharedValue(initialX);
     const translateY = useSharedValue(initialY);
-    const scale = useSharedValue(1);
-    const rotate = useSharedValue(0);
+    const opacity = useSharedValue(Math.random() * 0.5 + 0.3);
+    const scale = useSharedValue(Math.random() * 0.5 + 0.5);
 
     useEffect(() => {
         // Random movement
-        translateX.value = withRepeat(
+        translateX.value = withDelay(delay, withRepeat(
             withSequence(
                 withTiming(initialX + Math.random() * 100 - 50, { duration: duration, easing: Easing.inOut(Easing.ease) }),
                 withTiming(initialX - Math.random() * 100 + 50, { duration: duration * 1.2, easing: Easing.inOut(Easing.ease) }),
@@ -30,9 +32,9 @@ const Blob = ({ color, size, initialX, initialY, duration, delay = 0 }: { color:
             ),
             -1,
             true
-        );
+        ));
 
-        translateY.value = withRepeat(
+        translateY.value = withDelay(delay, withRepeat(
             withSequence(
                 withTiming(initialY + Math.random() * 100 - 50, { duration: duration * 1.1, easing: Easing.inOut(Easing.ease) }),
                 withTiming(initialY - Math.random() * 100 + 50, { duration: duration * 0.9, easing: Easing.inOut(Easing.ease) }),
@@ -40,21 +42,17 @@ const Blob = ({ color, size, initialX, initialY, duration, delay = 0 }: { color:
             ),
             -1,
             true
-        );
+        ));
 
-        // Breathing effect
-        scale.value = withRepeat(
-            withTiming(1.2, { duration: duration * 0.8, easing: Easing.inOut(Easing.ease) }),
+        // Opacity breathing
+        opacity.value = withDelay(delay, withRepeat(
+            withSequence(
+                withTiming(0.8, { duration: duration * 0.5, easing: Easing.inOut(Easing.ease) }),
+                withTiming(0.3, { duration: duration * 0.5, easing: Easing.inOut(Easing.ease) })
+            ),
             -1,
             true
-        );
-
-        // Slow rotation
-        rotate.value = withRepeat(
-            withTiming(360, { duration: duration * 2, easing: Easing.linear }),
-            -1,
-            false
-        );
+        ));
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => {
@@ -63,28 +61,20 @@ const Blob = ({ color, size, initialX, initialY, duration, delay = 0 }: { color:
                 { translateX: translateX.value },
                 { translateY: translateY.value },
                 { scale: scale.value },
-                { rotate: `${rotate.value}deg` }
             ],
+            opacity: opacity.value,
         };
     });
-
-    // Irregular shape using border radius
-    const borderRadius = {
-        borderTopLeftRadius: size * (0.4 + Math.random() * 0.4),
-        borderTopRightRadius: size * (0.4 + Math.random() * 0.4),
-        borderBottomLeftRadius: size * (0.4 + Math.random() * 0.4),
-        borderBottomRightRadius: size * (0.4 + Math.random() * 0.4),
-    };
 
     return (
         <Animated.View
             style={[
-                styles.blob,
+                styles.particle,
                 {
                     backgroundColor: color,
                     width: size,
                     height: size,
-                    ...borderRadius,
+                    borderRadius: size / 2,
                 },
                 animatedStyle,
             ]}
@@ -96,19 +86,40 @@ export default function MeshGradientBackground({ children }: { children: React.R
     const { resolvedTheme } = useTheme();
     const theme = Colors[resolvedTheme];
 
+    const particles = useMemo(() => {
+        return Array.from({ length: NUM_PARTICLES }).map((_, i) => {
+            const size = Math.random() * 6 + 3; // 3-9px
+            const initialX = Math.random() * width;
+            const initialY = Math.random() * height;
+            const duration = Math.random() * 5000 + 5000; // 5-10s
+            const delay = Math.random() * 2000;
+
+            // Randomly pick one of the blob colors or a variation
+            const colorKeys = ['blob1', 'blob2', 'blob3'] as const;
+            const colorKey = colorKeys[Math.floor(Math.random() * colorKeys.length)];
+            const color = theme[colorKey];
+
+            return (
+                <Particle
+                    key={i}
+                    color={color}
+                    size={size}
+                    initialX={initialX}
+                    initialY={initialY}
+                    duration={duration}
+                    delay={delay}
+                />
+            );
+        });
+    }, [theme]);
+
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
             <View style={styles.backgroundContainer}>
-                <Blob color={theme.blob1} size={width * 0.9} initialX={-width * 0.2} initialY={-height * 0.1} duration={8000} />
-                <Blob color={theme.blob2} size={width * 1.0} initialX={width * 0.4} initialY={height * 0.3} duration={10000} delay={1000} />
-                <Blob color={theme.blob3} size={width * 0.8} initialX={-width * 0.1} initialY={height * 0.6} duration={9000} delay={2000} />
-                <Blob color={theme.blob1} size={width * 0.6} initialX={width * 0.5} initialY={height * 0.8} duration={11000} delay={3000} />
+                {particles}
             </View>
 
-            {/* Heavy blur to create mesh gradient effect */}
-            <BlurView intensity={80} tint={resolvedTheme === 'dark' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-
-            {/* Subtle noise overlay */}
+            {/* Subtle noise overlay for texture */}
             <View style={styles.noiseOverlay} />
 
             <View style={styles.content}>{children}</View>
@@ -124,14 +135,14 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         overflow: 'hidden',
     },
-    blob: {
+    particle: {
         position: 'absolute',
-        opacity: 0.7,
     },
     noiseOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: 'rgba(255,255,255,0.02)',
         zIndex: 1,
+        pointerEvents: 'none',
     },
     content: {
         flex: 1,

@@ -1,6 +1,6 @@
 export const Colors = {
     light: {
-        background: '#F5F7FA', // Lighter, cooler gray
+        background: '#E5E5EA', // Darker gray for better contrast with white cards
         text: '#1C1C1E',
         textSecondary: 'rgba(60, 60, 67, 0.6)',
         headerText: '#1C1C1E',
