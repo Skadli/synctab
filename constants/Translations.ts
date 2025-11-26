@@ -49,6 +49,8 @@ export const Translations = {
         select_icon: '选择图标',
         select_color: '选择颜色',
         preview: '预览',
+        waiting: '等待中',
+        last_time: '上次',
     },
     en: {
         // Tabs
@@ -100,6 +102,8 @@ export const Translations = {
         select_icon: 'Select Icon',
         select_color: 'Select Color',
         preview: 'Preview',
+        waiting: 'Waiting',
+        last_time: 'Last',
     },
 };
 

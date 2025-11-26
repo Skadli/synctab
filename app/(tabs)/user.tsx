@@ -12,19 +12,19 @@ import { useTheme } from '../../context/ThemeContext';
 import { Colors } from '../../constants/Colors';
 import { useSettings } from '../../context/SettingsContext';
 
+import { AppIcons } from '../../constants/Icons';
+
 const INITIAL_USER = {
     name: 'Jason',
     userId: '882910',
-    avatarUrl: 'https://i.pravatar.cc/300?u=jason',
+    avatarIcon: AppIcons.Common.User,
     contributionCount: 12,
 };
 
 const MOCK_MEMBERS = [
-    { id: '1', name: 'Alice', avatarUrl: 'https://i.pravatar.cc/300?u=alice', isOnline: true },
-    { id: '2', name: 'Bob', avatarUrl: 'https://i.pravatar.cc/300?u=bob', isOnline: false },
-    { id: '3', name: 'Charlie', avatarUrl: 'https://i.pravatar.cc/300?u=charlie', isOnline: true },
-    { id: '4', name: 'David', avatarUrl: 'https://i.pravatar.cc/300?u=david', isOnline: false },
-    { id: '5', name: 'Eve', avatarUrl: 'https://i.pravatar.cc/300?u=eve', isOnline: true },
+    { id: '1', name: 'Alice', avatarUrl: 'https://i.pravatar.cc/300?u=alice', isOnline: true, statusText: 'Home • 3 actions' },
+    { id: '2', name: 'Bob', avatarUrl: 'https://i.pravatar.cc/300?u=bob', isOnline: false, statusText: 'Work • Last seen 2h ago' },
+    { id: '3', name: 'Charlie', avatarUrl: 'https://i.pravatar.cc/300?u=charlie', isOnline: true, statusText: 'Home • Active' },
 ];
 
 export default function UserScreen() {
@@ -36,8 +36,8 @@ export default function UserScreen() {
     const { resolvedTheme } = useTheme();
     const themeColors = Colors[resolvedTheme];
 
-    const handleUpdateProfile = (newName: string, newAvatar: string) => {
-        setUser(prev => ({ ...prev, name: newName, avatarUrl: newAvatar }));
+    const handleUpdateProfile = (newName: string, newAvatarIcon: { ios: string; android: any }) => {
+        setUser(prev => ({ ...prev, name: newName, avatarIcon: newAvatarIcon as any }));
     };
 
     return (
@@ -52,12 +52,12 @@ export default function UserScreen() {
                 <HeroProfileCard
                     name={user.name}
                     userId={user.userId}
-                    avatarUrl={user.avatarUrl}
+                    avatarIcon={user.avatarIcon}
                     contributionCount={user.contributionCount}
                     onPress={() => setShowEditProfile(true)}
                 />
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('family_members')}</Text>
+                    <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>Current Status</Text>
                     <View style={styles.gridContainer}>
                         <MemberGrid members={MOCK_MEMBERS} />
                         <InviteCard onPress={() => setShowInviteModal(true)} />
@@ -74,7 +74,7 @@ export default function UserScreen() {
                 visible={showEditProfile}
                 onClose={() => setShowEditProfile(false)}
                 currentName={user.name}
-                currentAvatar={user.avatarUrl}
+                currentIcon={user.avatarIcon}
                 onSave={handleUpdateProfile}
             />
         </MeshGradientBackground>
@@ -107,5 +107,6 @@ const styles = StyleSheet.create({
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
+        justifyContent: 'space-between',
     },
 });

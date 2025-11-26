@@ -9,6 +9,7 @@ import Animated, {
     withSequence,
     withDelay,
 } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/Colors';
 import { useTheme } from '../context/ThemeContext';
 
@@ -16,11 +17,14 @@ const { width, height } = Dimensions.get('window');
 
 const NUM_PARTICLES = 35;
 
-const Particle = ({ color, size, initialX, initialY, duration, delay }: { color: string, size: number, initialX: number, initialY: number, duration: number, delay: number }) => {
+const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+
+const Particle = ({ colors, size, initialX, initialY, duration, delay }: { colors: readonly [string, string], size: number, initialX: number, initialY: number, duration: number, delay: number }) => {
     const translateX = useSharedValue(initialX);
     const translateY = useSharedValue(initialY);
     const opacity = useSharedValue(Math.random() * 0.5 + 0.3);
     const scale = useSharedValue(Math.random() * 0.5 + 0.5);
+    const rotation = useSharedValue(Math.random() * 360);
 
     useEffect(() => {
         // Random movement
@@ -53,6 +57,13 @@ const Particle = ({ color, size, initialX, initialY, duration, delay }: { color:
             -1,
             true
         ));
+
+        // Continuous rotation
+        rotation.value = withRepeat(
+            withTiming(rotation.value + 360, { duration: duration * 2, easing: Easing.linear }),
+            -1,
+            false
+        );
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => {
@@ -61,17 +72,20 @@ const Particle = ({ color, size, initialX, initialY, duration, delay }: { color:
                 { translateX: translateX.value },
                 { translateY: translateY.value },
                 { scale: scale.value },
+                { rotate: `${rotation.value}deg` },
             ],
             opacity: opacity.value,
         };
     });
 
     return (
-        <Animated.View
+        <AnimatedLinearGradient
+            colors={colors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={[
                 styles.particle,
                 {
-                    backgroundColor: color,
                     width: size,
                     height: size,
                     borderRadius: size / 2,
@@ -88,21 +102,21 @@ export default function MeshGradientBackground({ children }: { children: React.R
 
     const particles = useMemo(() => {
         return Array.from({ length: NUM_PARTICLES }).map((_, i) => {
-            const size = Math.random() * 6 + 3; // 3-9px
+            const size = Math.random() * 10 + 5; // Increased size for gradient visibility
             const initialX = Math.random() * width;
             const initialY = Math.random() * height;
             const duration = Math.random() * 5000 + 5000; // 5-10s
             const delay = Math.random() * 2000;
 
-            // Randomly pick one of the blob colors or a variation
+            // Generate gradient pairs based on theme colors
             const colorKeys = ['blob1', 'blob2', 'blob3'] as const;
-            const colorKey = colorKeys[Math.floor(Math.random() * colorKeys.length)];
-            const color = theme[colorKey];
+            const color1 = theme[colorKeys[Math.floor(Math.random() * colorKeys.length)]];
+            const color2 = theme[colorKeys[Math.floor(Math.random() * colorKeys.length)]];
 
             return (
                 <Particle
                     key={i}
-                    color={color}
+                    colors={[color1, color2]}
                     size={size}
                     initialX={initialX}
                     initialY={initialY}

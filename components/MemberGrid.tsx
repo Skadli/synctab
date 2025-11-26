@@ -7,19 +7,20 @@ import Animated, {
     useSharedValue,
     withSequence,
 } from 'react-native-reanimated';
-import GlassView from './GlassView';
 import { Typography } from '../constants/Typography';
 import { useTheme } from '../context/ThemeContext';
 import { Colors } from '../constants/Colors';
+import GlassView from './GlassView';
 
 const { width } = Dimensions.get('window');
-const ITEM_WIDTH = (width - 32 - 32) / 3; // 3 columns, padding 16*2, gap 16
+const CARD_WIDTH = (width - 48) / 2; // Match SwitchCard width
 
 interface Member {
     id: string;
     name: string;
     avatarUrl: string;
     isOnline: boolean;
+    statusText?: string;
 }
 
 interface MemberGridProps {
@@ -37,13 +38,11 @@ const AVATARS = [
     'https://i.pravatar.cc/300?u=grace',
 ];
 
-const MemberBubble = ({ member, index }: { member: Member, index: number }) => {
+const MemberCard = ({ member, index }: { member: Member, index: number }) => {
     const { resolvedTheme } = useTheme();
     const themeColors = Colors[resolvedTheme];
     const opacity = useSharedValue(0.4);
 
-    // Use preset avatar if the URL matches a pattern or if we want to enforce presets
-    // For now, let's just use the index to pick a preset if the URL seems generic or if we want to show off the presets
     const avatarSource = { uri: AVATARS[index % AVATARS.length] };
 
     React.useEffect(() => {
@@ -61,15 +60,22 @@ const MemberBubble = ({ member, index }: { member: Member, index: number }) => {
     }));
 
     return (
-        <View style={styles.itemContainer}>
-            <View style={styles.avatarContainer}>
-                <Image source={avatarSource} style={[styles.avatar, { borderColor: themeColors.text }, !member.isOnline && { opacity: 0.5, borderColor: themeColors.textSecondary }]} />
-                {member.isOnline && (
-                    <Animated.View style={[styles.onlineDot, animatedStyle, { borderColor: themeColors.cardBackground }]} />
-                )}
+        <GlassView intensity={20} style={[styles.card, { borderColor: themeColors.glassBorder }]}>
+            <View style={styles.header}>
+                <View style={styles.avatarContainer}>
+                    <Image source={avatarSource} style={[styles.avatar, { borderColor: themeColors.text }]} />
+                    {member.isOnline && (
+                        <Animated.View style={[styles.onlineDot, animatedStyle, { borderColor: themeColors.cardBackground }]} />
+                    )}
+                </View>
+                <View style={styles.info}>
+                    <Text style={[styles.name, { color: themeColors.text }]} numberOfLines={1}>{member.name}</Text>
+                    <Text style={[styles.status, { color: member.isOnline ? '#34C759' : themeColors.textSecondary }]} numberOfLines={1}>
+                        {member.statusText || (member.isOnline ? 'Active now' : 'Away')}
+                    </Text>
+                </View>
             </View>
-            <Text style={[styles.name, { color: themeColors.text }]} numberOfLines={1}>{member.name}</Text>
-        </View>
+        </GlassView>
     );
 };
 
@@ -77,7 +83,9 @@ export default function MemberGrid({ members }: MemberGridProps) {
     return (
         <View style={styles.grid}>
             {members.map((member, index) => (
-                <MemberBubble key={member.id} member={member} index={index} />
+                <View key={member.id} style={styles.itemContainer}>
+                    <MemberCard member={member} index={index} />
+                </View>
             ))}
         </View>
     );
@@ -87,36 +95,52 @@ const styles = StyleSheet.create({
     grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 16,
+        justifyContent: 'space-between',
     },
     itemContainer: {
-        width: ITEM_WIDTH,
-        alignItems: 'center',
+        width: CARD_WIDTH,
         marginBottom: 16,
+    },
+    card: {
+        borderRadius: 24,
+        padding: 12,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
     },
     avatarContainer: {
         position: 'relative',
-        marginBottom: 8,
     },
     avatar: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         borderWidth: 2,
     },
     onlineDot: {
         position: 'absolute',
         bottom: 0,
         right: 0,
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        backgroundColor: '#00E676', // Bright Green
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: '#34C759',
         borderWidth: 2,
+    },
+    info: {
+        flex: 1,
     },
     name: {
         fontFamily: Typography.fontFamily,
-        fontSize: 14,
-        textAlign: 'center',
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 2,
+    },
+    status: {
+        fontFamily: Typography.fontFamily,
+        fontSize: 12,
+        fontWeight: '500',
     },
 });

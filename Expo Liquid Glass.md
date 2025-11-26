@@ -1,50 +1,64 @@
-# GlassEffect
+# Native tabs
 
-_React components that render a liquid glass effect using iOS's native UIVisualEffectView._
+_Learn how to use the native tabs layout in Expo Router._
 
-Available on platform ios
+[Liquid Glass Tabs with Expo Router](https://www.youtube.com/watch?v=QqNZXdGFl44)
 
-> **important** `GlassView` is only available on iOS 26 and above. It will fallback to regular `View` on unsupported platforms.
+> **important** Native tabs is an experimental feature available in SDK 54 and later, and its API is subject to change.
 
-React components that render native iOS liquid glass effect using [`UIVisualEffectView`](https://developer.apple.com/documentation/uikit/uivisualeffectview). Supports customizable glass styles and tint color.
+Tabs are a common way to navigate between different sections of an app. In Expo Router, you can use different tab layouts, depending on your needs. This guide covers the native tabs. Unlike the [other tabs layout](https://docs.expo.dev/router/advanced/tabs/#multiple-tab-layouts), native tabs use the native system tab bar.
 
-## Installation
+For other tab layouts see:
 
-```bash
-$ npx expo install expo-glass-effect
+[Custom tabs](https://docs.expo.dev/router/advanced/custom-tabs/)
+
+[JavaScript tabs](https://docs.expo.dev/router/advanced/tabs/)
+
+## Get started
+
+You can use file-based routing to create a tabs layout. Here's an example file structure:
+
+```
+app/
+    ├── _layout.tsx
+    ├── index.tsx
+    └── settings.tsx
 ```
 
-If you are installing this in an existing React Native app, make sure to install `expo` in your project.
+The above file structure produces a layout with a tab bar at the bottom of the screen. The tab bar will have two tabs: **Home** and **Settings**.
 
-### Known issues
+[A screenshot of a tab bar with two tabs: Home and Settings.](https://docs.expo.dev/static/images/expo-router/native-tabs.png)
 
-The `isInteractive` prop can only be set once on mount and cannot be changed dynamically after the component has been rendered. If you need to toggle interactive behavior, you must remount the component with a different `key`.
+You can use the **app/\_layout.tsx** file to define your app's root layout using tabs. This file is the main layout file for the tab bar and each tab. Inside it, you can control how the tab bar and each tab item look and behave.
 
-## Usage
+```tsx app/_layout.tsx
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 
-### `GlassView`
+export default function TabLayout() {
+  return (
+    <NativeTabs>
+      <NativeTabs.Trigger name="index">
+        <Label>Home</Label>
+        <Icon sf="house.fill" drawable="custom_android_drawable" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Icon sf="gear" drawable="custom_settings_drawable" />
+        <Label>Settings</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+```
 
-The `GlassView` component renders the native iOS glass effect. It supports different glass effect styles and can be customized with tint colors for various aesthetic needs.
+Finally, you have the two tab files that make up the content of the tabs: **app/index.tsx** and **app/settings.tsx**.
 
-```jsx
-import { StyleSheet, View, Image } from 'react-native';
-import { GlassView } from 'expo-glass-effect';
+```tsx app/index.tsx and app/settings.tsx
+import { View, Text, StyleSheet } from 'react-native';
 
-export default function App() {
+export default function Tab() {
   return (
     <View style={styles.container}>
-      <Image
-        style={styles.backgroundImage}
-        source={{
-          uri: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
-        }}
-      />
-
-      {/* Basic Glass View */}
-      <GlassView style={styles.glassView} />
-
-      {/* Glass View with clear style */}
-      <GlassView style={styles.tintedGlassView} glassEffectStyle="clear" />
+      <Text>Tab [Home|Settings]</Text>
     </View>
   );
 }
@@ -52,197 +66,399 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  backgroundImage: {
-    ...StyleSheet.absoluteFill,
-    width: '100%',
-    height: '100%',
-  },
-  glassView: {
-    position: 'absolute',
-    top: 100,
-    left: 50,
-    width: 200,
-    height: 100,
-    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-  },
-  tintedGlassView: {
-    position: 'absolute',
-    top: 250,
-    left: 50,
-    width: 200,
-    height: 100,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  text: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    textAlign: 'center',
   },
 });
 ```
 
-### `GlassContainer`
+The tab file named **index.tsx** is the default tab when the app loads. The second tab file **settings.tsx** shows how you can add more tabs to the tab bar.
 
-The `GlassContainer` component allows you to combine multiple glass views into a combined effect.
+> **info** In contrast to the Stack navigator, tabs are not automatically added to the tab bar. You need to explicitly add them in your layout file using the `NativeTabs.Trigger`.
 
-```jsx
-import { StyleSheet, View, Image } from 'react-native';
-import { GlassView, GlassContainer } from 'expo-glass-effect';
+## Customizing tab bar items
 
-export default function GlassContainerDemo() {
+When you want to customize the tab bar item, we recommend using the components API designed for this purpose. Currently, you can customize:
+
+- **Icon**: The icon displayed in the tab bar item.
+- **Label**: The label displayed in the tab bar item.
+- **Badge**: The badge displayed in the tab bar item.
+
+### Icon
+
+You can use the `Icon` component to customize the icon displayed in the tab bar item. The `Icon` component accepts a `drawable` prop for Android drawables, a `sf` prop for Apple's SF Symbols icons, or a `src` prop for custom images.
+
+Alternatively, you can pass `{default: ..., selected: ...}` to either the `sf` or `src` prop to specify different icons for the default and selected states.
+
+> To use `drawable` props on Android, you can use [built-in drawables](https://developer.android.com/reference/android/R.drawable) or add [custom drawables](https://developer.android.com/studio/write/resource-manager).
+
+```tsx app/_layout.tsx
+import { NativeTabs, Icon } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
   return (
-    <View style={styles.container}>
-      <Image
-        style={styles.backgroundImage}
-        source={{
-          uri: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=400&h=600&fit=crop',
+    <NativeTabs>
+      <NativeTabs.Trigger name="index">
+        <Icon sf={{ default: 'house', selected: 'house.fill' }} drawable="custom_home_drawable" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Icon src={require('../../../assets/setting_icon.png')} />
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+```
+
+Liquid glass on iOS automatically changes colors based on if the background color is light or dark. There is no callback for this, so you need to use a `PlatformColor` to set the color of the icon.
+
+```tsx app/_layout.tsx
+import { DynamicColorIOS } from 'react-native';
+import { NativeTabs, Icon } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
+  return (
+    <NativeTabs
+      labelStyle={{
+        // For the text color
+        color: DynamicColorIOS({
+          dark: 'white',
+          light: 'black',
+        }),
+      }}
+      // For the selected icon color
+      tintColor={DynamicColorIOS({
+        dark: 'white',
+        light: 'black',
+      })}>
+      <NativeTabs.Trigger name="index">
+        <Icon sf={{ default: 'house', selected: 'house.fill' }} drawable="custom_home_drawable" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Icon
+          src={{
+            default: require('../../../assets/setting_icon.png'),
+            selected: require('../../../assets/selected_setting_icon.png'),
+          }}
+        />
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+```
+
+### Label
+
+You can use the `Label` component to customize the label displayed in the tab bar item. The `Label` component accepts a string label passed as a child. If no label is provided, the tab bar item will use the route name as the label.
+
+If you don't want to display a label, you can use the `hidden` prop to hide the label.
+
+```tsx app/_layout.tsx
+import { NativeTabs, Label } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
+  return (
+    <NativeTabs>
+      <NativeTabs.Trigger name="index">
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Label hidden />
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+```
+
+### Badge
+
+You can use the `Badge` component to customize the badge displayed for the tab bar item. The badge is an additional mark on top of the tab and useful for showing notification or unread message counts.
+
+```tsx app/_layout.tsx
+import { NativeTabs, Badge } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
+  return (
+    <NativeTabs>
+      <NativeTabs.Trigger name="messages">
+        <Badge>9+</Badge>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Badge />
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+```
+
+[A screenshot of a tab bar with badges on the Messages and Settings tabs.](https://docs.expo.dev/static/images/expo-router/native-tabs-badges.png)
+
+## Customizing the tab bar
+
+Since the native tab layout's appearance varies by platform, the customization options are also different. For all customization options, see the [API reference for `NativeTabs`](https://docs.expo.dev/versions/latest/sdk/router-native-tabs/).
+
+## Advanced
+
+### Hide a tab conditionally
+
+If you want to hide a tab based on a condition, you can either remove the trigger or pass the `hidden` prop to the `NativeTabs.Trigger` component.
+
+```tsx app/_layout.tsx
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
+  const shouldHideMessagesTab = true; // Replace with your condition
+  return (
+    <NativeTabs>
+      <NativeTabs.Trigger name="messages" hidden={shouldHideMessagesTab} />
+    </NativeTabs>
+  );
+}
+```
+
+> **info** **Note**: Marking a tab as `hidden` means it cannot be navigated to in any way.
+
+### Dismiss behavior
+
+> **info** Currently this is an iOS-only feature, but we plan to add it to Android in the future.
+
+By default, tapping a tab that is already active closes all screens in that tab's stack and returns to the root screen. You can disable this by setting the `disablePopToTop` prop on the `NativeTabs.Trigger` component.
+
+```tsx app/_layout.tsx
+import { NativeTabs, Label } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
+  return (
+    <NativeTabs>
+      <NativeTabs.Trigger name="index" disablePopToTop>
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Label>Settings</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+```
+
+### Scroll to top
+
+> **info** Currently this is an iOS-only feature, but we plan to add it to Android in the future.
+
+By default, tapping a tab that is already active and showing its root screen scrolls the content back to the top. You can disable this by setting the `disableScrollToTop` prop on the `NativeTabs.Trigger` component.
+
+```tsx app/_layout.tsx
+import { NativeTabs, Label } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
+  return (
+    <NativeTabs>
+      <NativeTabs.Trigger name="index" disableScrollToTop>
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Label>Settings</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+```
+
+### iOS 26 features
+
+> **info** To use features described in this section, compile your app with Xcode 26 or higher.
+
+#### Separate search tab
+
+[A screenshot of a tab bar with separate search tab.](https://docs.expo.dev/static/images/expo-router/ios-26-search-tab.png)
+
+To add a separate search tab, assign the `role` with its value set to `search` to the native tab you want to display separately.
+
+```tsx app/_layout.tsx
+import { NativeTabs, Label } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
+  return (
+    <NativeTabs>
+      <NativeTabs.Trigger name="index">
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="search" role="search">
+        <Label>Search</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+```
+
+#### Tabbar search input
+
+[A screenshot of a tab bar search.](https://docs.expo.dev/static/images/expo-router/ios-26-search-bar.png)
+
+To add a search field to the tab bar, wrap the screen in a Stack navigator and configure `headerSearchBarOptions`.
+
+```
+app/
+    ├── _layout.tsx
+    ├── index.tsx
+    └── search/
+        ├── _layout.tsx
+        └── index.tsx
+```
+
+```tsx app/_layout.tsx
+import { NativeTabs, Label } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
+  return (
+    <NativeTabs>
+      <NativeTabs.Trigger name="index">
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="search" role="search">
+        <Label>Search</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+```
+
+```tsx app/search/_layout.tsx
+import { Stack } from 'expo-router';
+
+export default function SearchLayout() {
+  return (
+    <Stack>
+      <Stack.Screen
+        name="index"
+        options={{
+          title: 'Search',
+          headerSearchBarOptions: {
+            placement: 'automatic',
+            placeholder: 'Search',
+            onChangeText: () => {},
+          },
         }}
       />
-      <GlassContainer spacing={10} style={styles.containerStyle}>
-        <GlassView style={styles.glass1} isInteractive />
-        <GlassView style={styles.glass2} />
-        <GlassView style={styles.glass3} />
-      </GlassContainer>
-    </View>
+    </Stack>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  backgroundImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
-  },
-  containerStyle: {
-    position: 'absolute',
-    top: 200,
-    left: 50,
-    width: 250,
-    height: 100,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  glass1: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  glass2: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  glass3: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-});
 ```
 
-### `isLiquidGlassAvailable`
+```tsx app/search/index.tsx
+import { ScrollView } from 'react-native';
 
-The `isLiquidGlassAvailable` function let's you check, if the Liquid Glass effect is available in the compiled application.
-It validates the system and compiler versions, as well as the [**Info.plist**](https://developer.apple.com/documentation/BundleResources/Information-Property-List/UIDesignRequiresCompatibility) settings.
+export default function SearchIndex() {
+  return <ScrollView>{/* Screen content */}</ScrollView>;
+}
+```
 
-```tsx
-import { isLiquidGlassAvailable } from 'expo-glass-effect';
+#### Tab bar minimize behavior
 
-export default function CheckLiquidGlass() {
+<ContentSpotlight
+  alt="A video presenting tab bar minimize behavior."
+  file="expo-router/native-tabs-minimize-behavior.mp4"
+/>
+
+To implement the minimized behavior on the tab bar, you can use
+[`minimizeBehavior`](https://docs.expo.dev/versions/latest/sdk/router-native-tabs/#minimizebehavior) prop on
+`NativeTabs`. In the example below, the tab bar is minimized when scrolling down.
+
+```tsx app/_layout.tsx
+import { NativeTabs, Label } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
   return (
-    <Text>
-      {isLiquidGlassAvailable()
-        ? 'Liquid Glass effect is available'
-        : 'Liquid Glass effect is not available'}
-    </Text>
+    <NativeTabs minimizeBehavior="onScrollDown">
+      <NativeTabs.Trigger name="index">
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="tab-1">
+        <Label>Tab 1</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }
 ```
 
-### `isGlassEffectAPIAvailable`
+### Integration with `@expo/vector-icons`
 
-The `isGlassEffectAPIAvailable` function checks whether the Liquid Glass API is available at runtime on the device.
+> **info** **Recommended**: Use [SF Symbols on iOS](#icon). They offer a more native platform feeling compared to vector icons.
 
-> **Warning** This API was added because some iOS 26 beta versions do not have the Liquid Glass API available, which can lead to crashes. You should check this before using `GlassView` in your app to ensure compatibility. See [issue #40911](https://github.com/expo/expo/issues/40911) for more details.
+To use icons from `@expo/vector-icons`, you can use `VectorIcon` component.
 
-```tsx
-import { isGlassEffectAPIAvailable } from 'expo-glass-effect';
+```tsx app/_layout.tsx|collapseHeight=480
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { NativeTabs, Icon, VectorIcon } from 'expo-router/unstable-native-tabs';
+import { Platform } from 'react-native';
 
-export default function CheckGlassEffectAPI() {
+export default function TabLayout() {
   return (
-    <Text>
-      {isGlassEffectAPIAvailable()
-        ? 'Glass Effect API is available'
-        : 'Glass Effect API is not available'}
-    </Text>
+    <NativeTabs minimizeBehavior="onScrollDown">
+      <NativeTabs.Trigger name="index">
+        <Label>Home</Label>
+        {Platform.select({
+          ios: <Icon sf="house.fill" />,
+          android: <Icon src={<VectorIcon family={MaterialIcons} name="home" />} />,
+        })}
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }
 ```
 
-## API
+## Migrating from JavaScript tabs
 
-```js
-import {
-  GlassView,
-  GlassContainer,
-  isLiquidGlassAvailable,
-  isGlassEffectAPIAvailable,
-} from 'expo-glass-effect';
+Native tabs are not designed to be a drop-in replacement for [JavaScript tabs](https://docs.expo.dev/router/advanced/tabs/). The native tabs are constrained to the native platform behavior, whereas the JavaScript tabs can be customized more freely. If you aren't interested in the native platform behavior, you can continue using the JavaScript tabs.
+
+### Use `Trigger` instead of `Screen`
+
+`NativeTabs` introduces the concept of a `Trigger` for adding routes to a layout. Unlike a `Screen`, which styles routes that are added automatically, the `Trigger` system gives you better control for hiding and removing tabs from the tab bar.
+
+### Use React components instead of props
+
+`NativeTabs` has a React-first API that opts to use components for defining UI in favor of props objects.
+
+```diff
+- options={{
+-   tabBarIcon: ({ focused, color, size }) => (
+-     <Icon name="home" color={color} size={size} />
+-   ),
+- }}
++ <Icon sf="house" drawable="home_drawable" />
 ```
 
-## API: expo-glass-effect
+### Use Stacks inside tabs
 
-### Methods
+The JavaScript `<Tabs />` have a mock stack header which is not present in the native tabs. Instead, you should nest a native `<Stack />` layout inside the native tabs to support both headers and pushing screens.
 
-#### GlassContainer (*Function*)
-- `GlassContainer(props: GlassContainerProps): React.JSX.Element`
-  | Parameter | Type | Description |
-  | --- | --- | --- |
-  | `props` | GlassContainerProps | - |
+## Known limitations
 
-#### GlassView (*Function*)
-- `GlassView(props: GlassViewProps): React.JSX.Element`
-  | Parameter | Type | Description |
-  | --- | --- | --- |
-  | `props` | GlassViewProps | - |
+### A limit of 5 tabs on Android
 
-#### isLiquidGlassAvailable (*Function*)
-- `isLiquidGlassAvailable(): boolean`
-  Indicates whether the app is using the Liquid Glass design. The value will be `true` when the
-  Liquid Glass components are available in the app.
+On Android, there is a limitation of having a maximum of 5 tabs in the tab bar. This restriction comes from the platform's Material Tabs component.
 
-  This only checks for component availability. The value may also be `true` if the user has enabled
-  accessibility settings that limit the Liquid Glass effect.
-  To check if the user has disabled the Liquid Glass effect via accessibility settings, use
-  [`AccessibilityInfo.isReduceTransparencyEnabled()`](https://reactnative.dev/docs/accessibilityinfo#isreducetransparencyenabled-ios).
+### Cannot measure the tab bar height
 
-### Props
+The tabs move around, sometimes being on top of the screen when rendering on iPad, sometimes on the side of the screen when running on Apple Vision Pro, and so on. We're working on a layout function to provide more detailed layout info in the future.
 
-#### GlassContainerProps (*Type*)
-| Property | Type | Description |
-| --- | --- | --- |
-| `spacing` *(optional)* | number | The distance at which glass elements start affecting each other.<br>Controls when glass elements begin to merge together. Default: `undefined` |
+### No support for nested native tabs
 
-#### GlassViewProps (*Type*)
-| Property | Type | Description |
-| --- | --- | --- |
-| `glassEffectStyle` *(optional)* | GlassStyle | Glass effect style to apply to the view. Default: `'regular'` |
-| `isInteractive` *(optional)* | boolean | Whether the glass effect should be interactive. Default: `false` |
-| `tintColor` *(optional)* | string | Tint color to apply to the glass effect. |
+Native tabs cannot be nested inside other native tabs. You can still nest [JavaScript tabs](https://docs.expo.dev/router/advanced/tabs/) inside native tabs.
 
-### Types
+### Limited support for FlatList
 
-#### GlassStyle (*Type*)
-Type: 'clear' | 'regular'
+[FlatList](https://reactnative.dev/docs/flatlist) integration with native tabs has limitations. Features like scroll-to-top and minimize-on-scroll aren't supported. Additionally, detecting scroll edges may fail, causing the tab bar to appear transparent. To fix this, use the [`disableTransparentOnScrollEdge`](https://docs.expo.dev/versions/latest/sdk/router-native-tabs/#disabletransparentonscrolledge) prop.
+
+```tsx app/_layout.tsx
+import { NativeTabs, Label } from 'expo-router/unstable-native-tabs';
+
+export default function TabLayout() {
+  return (
+    <NativeTabs disableTransparentOnScrollEdge>
+      <NativeTabs.Trigger name="index">
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+```

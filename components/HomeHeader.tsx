@@ -1,20 +1,21 @@
 import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Typography } from '../constants/Typography';
 import GlassView from './GlassView';
-import { useTheme } from '../context/ThemeContext';
 import { Colors } from '../constants/Colors';
+import { Typography } from '../constants/Typography';
+import { useTheme } from '../context/ThemeContext';
+import ThemedIcon from './ThemedIcon';
+import { AppIcons } from '../constants/Icons';
 
 interface HomeHeaderProps {
     spaceName: string;
     onSpacePress: () => void;
     onHistoryPress: () => void;
+    onAddPress: () => void;
 }
 
-export default function HomeHeader({ spaceName, onSpacePress, onHistoryPress }: HomeHeaderProps) {
+export default function HomeHeader({ spaceName, onSpacePress, onHistoryPress, onAddPress }: HomeHeaderProps) {
     const insets = useSafeAreaInsets();
     const { resolvedTheme } = useTheme();
     const themeColors = Colors[resolvedTheme];
@@ -25,11 +26,16 @@ export default function HomeHeader({ spaceName, onSpacePress, onHistoryPress }: 
                 <View style={styles.content}>
                     <Pressable onPress={onSpacePress} style={styles.leftContainer}>
                         <Text style={[styles.spaceName, { color: themeColors.text }]}>{spaceName}</Text>
-                        <Ionicons name="chevron-down" size={20} color={themeColors.icon} />
+                        <ThemedIcon iosName={AppIcons.Common.ChevronDown.ios} androidName={AppIcons.Common.ChevronDown.android} size={20} color={themeColors.icon} />
                     </Pressable>
-                    <Pressable onPress={onHistoryPress} style={styles.rightContainer}>
-                        <Ionicons name="time-outline" size={24} color={themeColors.icon} />
-                    </Pressable>
+                    <View style={styles.rightContainer}>
+                        <Pressable onPress={onAddPress} style={styles.iconButton}>
+                            <ThemedIcon iosName={AppIcons.Common.Add.ios} androidName={AppIcons.Common.Add.android} size={24} color={themeColors.icon} />
+                        </Pressable>
+                        <Pressable onPress={onHistoryPress} style={styles.iconButton}>
+                            <ThemedIcon iosName={AppIcons.Common.History.ios} androidName={AppIcons.Common.History.android} size={24} color={themeColors.icon} />
+                        </Pressable>
+                    </View>
                 </View>
             </GlassView>
         </View>
@@ -48,6 +54,7 @@ const styles = StyleSheet.create({
     },
     glassContainer: {
         borderRadius: 24,
+        overflow: 'hidden',
     },
     content: {
         flexDirection: 'row',
@@ -67,6 +74,11 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     rightContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    iconButton: {
         padding: 4,
     },
 });

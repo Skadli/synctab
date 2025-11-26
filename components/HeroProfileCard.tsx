@@ -6,15 +6,19 @@ import { Typography } from '../constants/Typography';
 import { Colors } from '../constants/Colors';
 import { useTheme } from '../context/ThemeContext';
 
+import ThemedIcon from './ThemedIcon';
+import { AppIcons } from '../constants/Icons';
+
 interface HeroProfileCardProps {
     name: string;
     userId: string;
-    avatarUrl: string;
+    avatarUrl?: string;
+    avatarIcon?: { ios: string; android: any };
     contributionCount: number;
     onPress: () => void;
 }
 
-export default function HeroProfileCard({ name, userId, avatarUrl, contributionCount, onPress }: HeroProfileCardProps) {
+export default function HeroProfileCard({ name, userId, avatarUrl, avatarIcon, contributionCount, onPress }: HeroProfileCardProps) {
     const { resolvedTheme } = useTheme();
     const themeColors = Colors[resolvedTheme];
 
@@ -23,7 +27,13 @@ export default function HeroProfileCard({ name, userId, avatarUrl, contributionC
             <GlassView intensity={40} style={[styles.container, { borderColor: themeColors.glassBorder }]}>
                 <View style={styles.content}>
                     <View style={styles.left}>
-                        <Image source={{ uri: avatarUrl }} style={[styles.avatar, { borderColor: themeColors.text }]} />
+                        {avatarIcon ? (
+                            <View style={[styles.avatar, { borderColor: themeColors.text, justifyContent: 'center', alignItems: 'center', backgroundColor: themeColors.cardBackground }]}>
+                                <ThemedIcon iosName={avatarIcon.ios} androidName={avatarIcon.android} size={40} color={themeColors.text} />
+                            </View>
+                        ) : (
+                            <Image source={{ uri: avatarUrl }} style={[styles.avatar, { borderColor: themeColors.text }]} />
+                        )}
                         <View style={styles.info}>
                             <Text style={[styles.name, { color: themeColors.text }]}>{name}</Text>
                             <Text style={[styles.userId, { color: themeColors.textSecondary }]}>ID: {userId}</Text>

@@ -1,12 +1,13 @@
 import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import GlassView from './GlassView';
 import { Colors } from '../constants/Colors';
 import { Typography } from '../constants/Typography';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useSettings } from '../context/SettingsContext';
+import ThemedIcon from './ThemedIcon';
+import { AppIcons } from '../constants/Icons';
 
 type ThemeMode = 'light' | 'dark' | 'auto';
 
@@ -38,15 +39,15 @@ export default function AppearanceSwitcher() {
         <GlassView intensity={20} style={styles.container}>
             <View style={styles.content}>
                 <Pressable onPress={() => handlePress('light')} style={[styles.option, theme === 'light' && { backgroundColor: themeColors.activeBackground }]}>
-                    <Ionicons name="sunny" size={20} color={getIconColor('light')} />
+                    <ThemedIcon iosName={AppIcons.Settings.Appearance.Light.ios} androidName={AppIcons.Settings.Appearance.Light.android} size={20} color={getIconColor('light')} />
                     <Text style={getTextStyle('light')}>{t('theme_light')}</Text>
                 </Pressable>
                 <Pressable onPress={() => handlePress('dark')} style={[styles.option, theme === 'dark' && { backgroundColor: themeColors.activeBackground }]}>
-                    <Ionicons name="moon" size={20} color={getIconColor('dark')} />
+                    <ThemedIcon iosName={AppIcons.Settings.Appearance.Dark.ios} androidName={AppIcons.Settings.Appearance.Dark.android} size={20} color={getIconColor('dark')} />
                     <Text style={getTextStyle('dark')}>{t('theme_dark')}</Text>
                 </Pressable>
                 <Pressable onPress={() => handlePress('auto')} style={[styles.option, theme === 'auto' && { backgroundColor: themeColors.activeBackground }]}>
-                    <Ionicons name="contrast" size={20} color={getIconColor('auto')} />
+                    <ThemedIcon iosName={AppIcons.Settings.Appearance.Auto.ios} androidName={AppIcons.Settings.Appearance.Auto.android} size={20} color={getIconColor('auto')} />
                     <Text style={getTextStyle('auto')}>{t('theme_auto')}</Text>
                 </Pressable>
             </View>

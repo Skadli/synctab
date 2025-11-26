@@ -21,10 +21,11 @@ interface SortableGridProps<T extends { id: string }> {
     data: T[];
     onDragEnd: (data: T[]) => void;
     renderItem: (item: T, index: number) => React.ReactNode;
+    renderFooter?: () => React.ReactNode;
     editing: boolean;
 }
 
-export default function SortableGrid<T extends { id: string }>({ data, onDragEnd, renderItem, editing }: SortableGridProps<T>) {
+export default function SortableGrid<T extends { id: string }>({ data, onDragEnd, renderItem, renderFooter, editing }: SortableGridProps<T>) {
     const positions = useSharedValue<Record<string, number>>(
         Object.assign({}, ...data.map((item, index) => ({ [item.id]: index })))
     );
@@ -41,8 +42,11 @@ export default function SortableGrid<T extends { id: string }>({ data, onDragEnd
         onDragEnd(newData);
     };
 
+    const totalItems = data.length + (renderFooter ? 1 : 0);
+    const containerHeight = Math.ceil(totalItems / COLUMNS) * (ITEM_WIDTH + MARGIN);
+
     return (
-        <View style={[styles.container, { height: Math.ceil(data.length / COLUMNS) * (ITEM_WIDTH + MARGIN) }]}>
+        <View style={[styles.container, { height: containerHeight }]}>
             {data.map((item, index) => (
                 <SortableItem
                     key={item.id}
@@ -56,6 +60,19 @@ export default function SortableGrid<T extends { id: string }>({ data, onDragEnd
                     {renderItem(item, index)}
                 </SortableItem>
             ))}
+            {renderFooter && (
+                <View
+                    style={{
+                        position: 'absolute',
+                        left: (data.length % COLUMNS) * (ITEM_WIDTH + MARGIN),
+                        top: Math.floor(data.length / COLUMNS) * (ITEM_WIDTH + MARGIN),
+                        width: ITEM_WIDTH,
+                        height: ITEM_WIDTH,
+                    }}
+                >
+                    {renderFooter()}
+                </View>
+            )}
         </View>
     );
 }

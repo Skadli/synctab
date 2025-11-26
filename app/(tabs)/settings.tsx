@@ -7,10 +7,11 @@ import LanguageToggle from '../../components/LanguageToggle';
 import GlassView from '../../components/GlassView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Typography } from '../../constants/Typography';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { Colors } from '../../constants/Colors';
 import { useSettings } from '../../context/SettingsContext';
+import ThemedIcon from '../../components/ThemedIcon';
+import { AppIcons } from '../../constants/Icons';
 
 // 设置页主屏幕，实现 PRD 中的「外观与语言」「账号与通知」及退出登录逻辑
 export default function SettingsScreen() {
@@ -54,7 +55,7 @@ export default function SettingsScreen() {
                         <GlassView intensity={30} style={styles.listContainer}>
                             <View style={styles.listItem}>
                                 <View style={styles.itemLeft}>
-                                    <Ionicons name="phone-portrait-outline" size={22} color={themeColors.icon} />
+                                    <ThemedIcon iosName={AppIcons.Settings.Haptics.ios} androidName={AppIcons.Settings.Haptics.android} size={22} color={themeColors.icon} />
                                     <Text style={[styles.itemText, { color: themeColors.text }]}>{t('haptics')}</Text>
                                 </View>
                                 <Switch
@@ -65,7 +66,7 @@ export default function SettingsScreen() {
                             <View style={styles.divider} />
                             <View style={styles.listItem}>
                                 <View style={styles.itemLeft}>
-                                    <Ionicons name="notifications-outline" size={22} color={themeColors.icon} />
+                                    <ThemedIcon iosName={AppIcons.Settings.Notifications.ios} androidName={AppIcons.Settings.Notifications.android} size={22} color={themeColors.icon} />
                                     <Text style={[styles.itemText, { color: themeColors.text }]}>{t('notifications')}</Text>
                                 </View>
                                 <Switch

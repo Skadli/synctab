@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, Modal, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Ionicons } from '@expo/vector-icons';
 import { Typography } from '../constants/Typography';
 import { useTheme } from '../context/ThemeContext';
 import { Colors } from '../constants/Colors';
 import GlassView from './GlassView';
 import { useSettings } from '../context/SettingsContext';
+import ThemedIcon from './ThemedIcon';
+import { AppIcons } from '../constants/Icons';
 
 interface AddDeviceModalProps {
     visible: boolean;
@@ -14,17 +15,18 @@ interface AddDeviceModalProps {
     onAdd: (name: string, icon: string, color: string) => void;
 }
 
+// Map icons to presets where possible, or keep as strings if they are custom
 const ICONS = [
-    'bulb-outline',
-    'snow-outline',
-    'leaf-outline',
-    'water-outline',
-    'tv-outline',
-    'game-controller-outline',
-    'lock-closed-outline',
-    'wifi-outline',
-    'bed-outline',
-    'desktop-outline',
+    { id: 'light', ios: AppIcons.Devices.Light.ios, android: AppIcons.Devices.Light.android },
+    { id: 'ac', ios: AppIcons.Devices.AC.ios, android: AppIcons.Devices.AC.android },
+    { id: 'purifier', ios: AppIcons.Devices.AirPurifier.ios, android: AppIcons.Devices.AirPurifier.android },
+    { id: 'water', ios: AppIcons.Devices.WaterHeater.ios, android: AppIcons.Devices.WaterHeater.android },
+    { id: 'tv', ios: 'tv', android: 'tv-outline' },
+    { id: 'game', ios: 'gamecontroller', android: 'game-controller-outline' },
+    { id: 'lock', ios: 'lock', android: 'lock-closed-outline' },
+    { id: 'wifi', ios: 'wifi', android: 'wifi-outline' },
+    { id: 'bed', ios: 'bed.double', android: 'bed-outline' },
+    { id: 'desktop', ios: 'desktopcomputer', android: 'desktop-outline' },
 ];
 
 export default function AddDeviceModal({ visible, onClose, onAdd }: AddDeviceModalProps) {
@@ -33,14 +35,18 @@ export default function AddDeviceModal({ visible, onClose, onAdd }: AddDeviceMod
     const themeColors = Colors[resolvedTheme];
 
     const [name, setName] = useState('');
-    const [selectedIcon, setSelectedIcon] = useState(ICONS[0]);
+    const [selectedIconIdx, setSelectedIconIdx] = useState(0);
     const [selectedColor, setSelectedColor] = useState(Colors.palette[0]);
 
     const handleAdd = () => {
         if (name.trim()) {
-            onAdd(name.trim(), selectedIcon, selectedColor);
+            // For now passing the android name as the "icon" string for backward compatibility if needed,
+            // but ideally we should pass the full preset or IDs.
+            // The home screen logic handles the icon mapping.
+            const iconObj = ICONS[selectedIconIdx];
+            onAdd(name.trim(), iconObj.android, selectedColor);
             setName('');
-            setSelectedIcon(ICONS[0]);
+            setSelectedIconIdx(0);
             setSelectedColor(Colors.palette[0]);
             onClose();
         }
@@ -57,7 +63,7 @@ export default function AddDeviceModal({ visible, onClose, onAdd }: AddDeviceMod
                     <Text style={[styles.title, { color: themeColors.text }]}>{t('add_device_title')}</Text>
 
                     <TextInput
-                        style={[styles.input, { color: themeColors.text, borderColor: themeColors.glassBorder, backgroundColor: 'rgba(120,120,120,0.1)' }]}
+                        style={[styles.input, { color: themeColors.text, borderColor: themeColors.glassBorder, backgroundColor: resolvedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
                         placeholder={t('add_device_placeholder')}
                         placeholderTextColor={themeColors.textSecondary}
                         value={name}
@@ -66,19 +72,20 @@ export default function AddDeviceModal({ visible, onClose, onAdd }: AddDeviceMod
 
                     <Text style={[styles.label, { color: themeColors.textSecondary }]}>{t('select_icon')}</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorContainer}>
-                        {ICONS.map((icon) => (
+                        {ICONS.map((icon, index) => (
                             <Pressable
-                                key={icon}
-                                onPress={() => setSelectedIcon(icon)}
+                                key={icon.id}
+                                onPress={() => setSelectedIconIdx(index)}
                                 style={[
                                     styles.iconOption,
-                                    selectedIcon === icon && { backgroundColor: themeColors.text, borderColor: themeColors.text }
+                                    selectedIconIdx === index && { backgroundColor: themeColors.activeBackground, borderColor: themeColors.text }
                                 ]}
                             >
-                                <Ionicons
-                                    name={icon as any}
+                                <ThemedIcon
+                                    iosName={icon.ios}
+                                    androidName={icon.android as any}
                                     size={24}
-                                    color={selectedIcon === icon ? themeColors.background : themeColors.text}
+                                    color={selectedIconIdx === index ? themeColors.text : themeColors.textSecondary}
                                 />
                             </Pressable>
                         ))}
@@ -93,7 +100,7 @@ export default function AddDeviceModal({ visible, onClose, onAdd }: AddDeviceMod
                                 style={[
                                     styles.colorOption,
                                     { backgroundColor: color },
-                                    selectedColor === color && { borderWidth: 2, borderColor: themeColors.text }
+                                    selectedColor === color && { borderWidth: 2, borderColor: themeColors.text, transform: [{ scale: 1.1 }] }
                                 ]}
                             />
                         ))}
@@ -125,6 +132,7 @@ const styles = StyleSheet.create({
         padding: 24,
         borderRadius: 24,
         borderWidth: 1,
+        overflow: 'hidden',
     },
     title: {
         fontFamily: Typography.fontFamily,
@@ -139,23 +147,23 @@ const styles = StyleSheet.create({
         padding: 16,
         borderRadius: 16,
         borderWidth: 1,
-        marginBottom: 16,
+        marginBottom: 24,
     },
     label: {
         fontFamily: Typography.fontFamily,
         fontSize: 13,
-        marginBottom: 8,
+        marginBottom: 12,
         marginLeft: 4,
     },
     selectorContainer: {
         flexDirection: 'row',
         marginBottom: 24,
-        maxHeight: 50,
+        maxHeight: 60,
     },
     iconOption: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
